@@ -5,16 +5,16 @@ namespace UnitySaveManager;
 /// </summary>
 public class GameInfo
 {
-    /// <summary>Game name derived from the _Data folder (e.g., "Lizardwomen 2")</summary>
+    /// <summary>Game name derived from the _Data folder (e.g., "MyEpicGame")</summary>
     public string GameName { get; set; } = string.Empty;
 
-    /// <summary>Company name from app.info line 1 (e.g., "Horny Capybara")</summary>
+    /// <summary>Company name from app.info line 1 (e.g., "AwesomeStudios")</summary>
     public string CompanyName { get; set; } = string.Empty;
 
-    /// <summary>Product name from app.info line 2 (e.g., "Lizardwomen 2")</summary>
+    /// <summary>Product name from app.info line 2 (e.g., "MyEpicGame")</summary>
     public string ProductName { get; set; } = string.Empty;
 
-    /// <summary>Full path to the game's root folder (e.g., D:\Games\Unity\Lizardwomen 2)</summary>
+    /// <summary>Full path to the game's root folder (e.g., D:\Games\Unity\MyEpicGame)</summary>
     public string GamePath { get; set; } = string.Empty;
 
     /// <summary>Full path to the _Data folder containing app.info</summary>
