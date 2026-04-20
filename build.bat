@@ -26,11 +26,9 @@ echo ================================
 echo  Build complete!
 echo  Output: publish\UnitySaveManager.exe
 echo ================================
-pause
 exit /b 0
 
 :error
 echo.
 echo BUILD FAILED!
-pause
 exit /b 1

@@ -8,6 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>UnitySaveManager</RootNamespace>
     <AssemblyName>UnitySaveManager</AssemblyName>
+    <ApplicationIcon>app_icon.ico</ApplicationIcon>
   </PropertyGroup>
 
 </Project>

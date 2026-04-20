@@ -8,10 +8,21 @@ public static class SaveManager
     /// <summary>
     /// Scan a root directory for Unity games by finding *_Data\app.info files.
     /// </summary>
-    public static List<GameInfo> ScanForGames(string rootPath)
+    /// <param name="debugLog">
+    /// Optional callback that receives verbose debug messages for every
+    /// candidate discovered during the scan (accepted and rejected).
+    /// </param>
+    public static List<GameInfo> ScanForGames(string rootPath, Action<string>? debugLog = null)
     {
         var games = new List<GameInfo>();
-        if (!Directory.Exists(rootPath)) return games;
+        if (!Directory.Exists(rootPath))
+        {
+            debugLog?.Invoke($"[SCAN] Root path does not exist: {rootPath}");
+            return games;
+        }
+
+        int totalFound = 0;
+        int rejected = 0;
 
         // Find all app.info files within _Data folders
         try
@@ -19,29 +30,68 @@ public static class SaveManager
             var appInfoFiles = Directory.EnumerateFiles(rootPath, "app.info", SearchOption.AllDirectories);
             foreach (var appInfoPath in appInfoFiles)
             {
+                totalFound++;
+                debugLog?.Invoke($"[CANDIDATE #{totalFound}] {appInfoPath}");
+
                 var dataDir = Path.GetDirectoryName(appInfoPath);
-                if (dataDir == null) continue;
+                if (dataDir == null)
+                {
+                    debugLog?.Invoke($"  -> SKIP: Could not determine parent directory");
+                    rejected++;
+                    continue;
+                }
 
                 var dataDirName = Path.GetFileName(dataDir);
                 if (!dataDirName.EndsWith("_Data", StringComparison.OrdinalIgnoreCase))
+                {
+                    debugLog?.Invoke($"  -> SKIP: Parent folder '{dataDirName}' does not end with '_Data'");
+                    rejected++;
                     continue;
+                }
 
                 try
                 {
                     var lines = File.ReadAllLines(appInfoPath);
-                    if (lines.Length < 2) continue;
+                    debugLog?.Invoke($"  -> app.info has {lines.Length} line(s)");
+
+                    if (lines.Length < 2)
+                    {
+                        debugLog?.Invoke($"  -> SKIP: Needs at least 2 lines (company + product), only {lines.Length} found");
+                        rejected++;
+                        continue;
+                    }
 
                     var companyName = lines[0].Trim();
                     var productName = lines[1].Trim();
-                    if (string.IsNullOrEmpty(companyName) || string.IsNullOrEmpty(productName))
+                    debugLog?.Invoke($"  -> Company='{companyName}', Product='{productName}'");
+
+                    if (string.IsNullOrEmpty(companyName))
+                    {
+                        debugLog?.Invoke($"  -> SKIP: Company name is empty");
+                        rejected++;
                         continue;
+                    }
+
+                    if (string.IsNullOrEmpty(productName))
+                    {
+                        debugLog?.Invoke($"  -> SKIP: Product name is empty");
+                        rejected++;
+                        continue;
+                    }
 
                     // Game name = _Data folder name minus "_Data" suffix
                     var gameName = dataDirName[..^"_Data".Length];
 
                     // Game path = parent of the _Data folder
                     var gamePath = Directory.GetParent(dataDir)?.FullName;
-                    if (gamePath == null) continue;
+                    if (gamePath == null)
+                    {
+                        debugLog?.Invoke($"  -> SKIP: Could not resolve game root path");
+                        rejected++;
+                        continue;
+                    }
+
+                    debugLog?.Invoke($"  -> ACCEPTED: GameName='{gameName}', GamePath='{gamePath}'");
 
                     games.Add(new GameInfo
                     {
@@ -52,16 +102,19 @@ public static class SaveManager
                         DataPath = dataDir
                     });
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Skip files we can't read
+                    debugLog?.Invoke($"  -> SKIP: Exception reading file — {ex.Message}");
+                    rejected++;
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Directory enumeration failed
+            debugLog?.Invoke($"[SCAN] Directory enumeration failed: {ex.Message}");
         }
+
+        debugLog?.Invoke($"[SCAN SUMMARY] Total app.info files found: {totalFound}, Accepted: {totalFound - rejected}, Rejected: {rejected}");
 
         return games.OrderBy(g => g.GameName).ToList();
     }

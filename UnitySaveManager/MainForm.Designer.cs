@@ -21,6 +21,7 @@ partial class MainForm
         txtPath = new TextBox();
         btnBrowse = new Button();
         btnScan = new Button();
+        chkDebugMode = new CheckBox();
 
         // ---- Game List ----
         gridGames = new DataGridView();
@@ -61,13 +62,13 @@ partial class MainForm
         SuspendLayout();
 
         // ========== panelTop ==========
-        panelTop.Size = new Size(900, 60);
+        panelTop.Size = new Size(900, 85);
         panelTop.Controls.Add(lblPath);
         panelTop.Controls.Add(txtPath);
         panelTop.Controls.Add(btnBrowse);
         panelTop.Controls.Add(btnScan);
         panelTop.Dock = DockStyle.Top;
-        panelTop.Height = 60;
+        panelTop.Height = 85;
         panelTop.Padding = new Padding(12, 12, 12, 8);
         panelTop.BackColor = Color.FromArgb(30, 30, 30);
 
@@ -110,6 +111,16 @@ partial class MainForm
         btnScan.FlatAppearance.BorderSize = 0;
         btnScan.Font = new Font("Segoe UI Semibold", 9f);
         btnScan.Cursor = Cursors.Hand;
+
+        // chkDebugMode — second row, left-aligned so it's always visible
+        chkDebugMode.Text = "🐛 Debug Mode";
+        chkDebugMode.AutoSize = true;
+        chkDebugMode.Location = new Point(14, 52);
+        chkDebugMode.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+        chkDebugMode.ForeColor = Color.FromArgb(180, 180, 180);
+        chkDebugMode.Font = new Font("Segoe UI", 9f);
+        chkDebugMode.Cursor = Cursors.Hand;
+        panelTop.Controls.Add(chkDebugMode);
 
         // ========== gridGames ==========
         ((System.ComponentModel.ISupportInitialize)gridGames).BeginInit();
@@ -162,6 +173,7 @@ partial class MainForm
         });
 
         // ========== panelActions ==========
+        panelActions.Size = new Size(900, 55);
         panelActions.Controls.Add(btnNextPage);
         panelActions.Controls.Add(lblPage);
         panelActions.Controls.Add(btnPrevPage);
@@ -170,7 +182,6 @@ partial class MainForm
         panelActions.Controls.Add(btnRestoreSelected);
         panelActions.Controls.Add(btnRestoreAll);
         panelActions.Dock = DockStyle.Bottom;
-        panelActions.Height = 55;
         panelActions.Padding = new Padding(12, 10, 12, 10);
         panelActions.BackColor = Color.FromArgb(30, 30, 30);
 
@@ -304,6 +315,7 @@ partial class MainForm
     private TextBox txtPath;
     private Button btnBrowse;
     private Button btnScan;
+    private CheckBox chkDebugMode;
 
     // Game list
     private DataGridView gridGames;

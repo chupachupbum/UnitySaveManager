@@ -13,6 +13,12 @@ public partial class MainForm : Form
     {
         InitializeComponent();
 
+        try
+        {
+            this.Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+        }
+        catch { }
+
         // Config file next to the executable
         _configPath = Path.Combine(AppContext.BaseDirectory, "config.ini");
 
@@ -66,8 +72,12 @@ public partial class MainForm : Form
             return;
         }
 
+        bool debugMode = chkDebugMode.Checked;
+
         SaveLastPath(rootPath);
         Log($"Scanning: {rootPath} ...", Color.FromArgb(100, 180, 255));
+        if (debugMode)
+            Log("[Debug Mode ON] Verbose scan trace enabled.", Color.FromArgb(255, 165, 0));
 
         btnScan.Enabled = false;
         btnScan.Text = "Scanning...";
@@ -75,7 +85,12 @@ public partial class MainForm : Form
         // Run scan on background thread to keep UI responsive
         Task.Run(() =>
         {
-            var games = SaveManager.ScanForGames(rootPath);
+            Action<string>? debugLog = debugMode
+                ? msg => Invoke(() => Log(msg, Color.FromArgb(255, 165, 0)))
+                : null;
+
+            var games = SaveManager.ScanForGames(rootPath, debugLog);
+
             Invoke(() =>
             {
                 _games = games;
@@ -83,7 +98,31 @@ public partial class MainForm : Form
                 RefreshGameList();
                 btnScan.Enabled = true;
                 btnScan.Text = "🔍 Scan";
-                Log($"Found {games.Count} Unity game(s).", Color.FromArgb(100, 220, 100));
+
+                int totalPages = Math.Max(1, (int)Math.Ceiling(games.Count / (double)_pageSize));
+                int shownNow   = Math.Min(_pageSize, games.Count);
+                Log($"Found {games.Count} Unity game(s). Showing {shownNow} on page 1 of {totalPages}.",
+                    Color.FromArgb(100, 220, 100));
+                if (totalPages > 1)
+                    Log($"Use the \"< Prev\" / \"Next >\" buttons to see all {games.Count} games.",
+                        Color.FromArgb(180, 180, 100));
+
+                if (debugMode)
+                {
+                    Log("--- Debug: Per-game details ---", Color.FromArgb(255, 165, 0));
+                    foreach (var g in games)
+                    {
+                        Log($"  Game    : {g.GameName}", Color.FromArgb(255, 165, 0));
+                        Log($"  Company : {g.CompanyName}", Color.FromArgb(255, 165, 0));
+                        Log($"  Product : {g.ProductName}", Color.FromArgb(255, 165, 0));
+                        Log($"  SavePath: {g.SavePath}", Color.FromArgb(255, 165, 0));
+                        Log($"  HasSaves: {g.HasSaves}", Color.FromArgb(255, 165, 0));
+                        Log($"  BackupPath: {g.BackupPath}", Color.FromArgb(255, 165, 0));
+                        Log($"  HasBackup : {g.HasBackup}", Color.FromArgb(255, 165, 0));
+                        Log(string.Empty, Color.FromArgb(255, 165, 0));
+                    }
+                    Log("--- End debug details ---", Color.FromArgb(255, 165, 0));
+                }
             });
         });
     }
